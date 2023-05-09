@@ -37,11 +37,13 @@
 #include "action_map/openxr_interaction_profile_metadata.h"
 #include "openxr_interface.h"
 
-#include "extensions/openxr_extension_wrapper_extension.h"
 
+#include "scene/openxr_composition_layer.h"
 #include "scene/openxr_hand.h"
 
 #include "extensions/openxr_composition_layer_depth_extension.h"
+#include "extensions/openxr_composition_layer_extension.h"
+#include "extensions/openxr_extension_wrapper_extension.h"
 #include "extensions/openxr_eye_gaze_interaction.h"
 #include "extensions/openxr_fb_display_refresh_rate_extension.h"
 #include "extensions/openxr_fb_passthrough_extension_wrapper.h"
@@ -111,6 +113,7 @@ void initialize_openxr_module(ModuleInitializationLevel p_level) {
 			OpenXRAPI::register_extension_wrapper(memnew(OpenXRLocalFloorExtension));
 			OpenXRAPI::register_extension_wrapper(memnew(OpenXRPicoControllerExtension));
 			OpenXRAPI::register_extension_wrapper(memnew(OpenXRCompositionLayerDepthExtension));
+			OpenXRAPI::register_extension_wrapper(memnew(OpenXRCompositionLayerExtension));
 			OpenXRAPI::register_extension_wrapper(memnew(OpenXRHTCControllerExtension));
 			OpenXRAPI::register_extension_wrapper(memnew(OpenXRHTCViveTrackerExtension));
 			OpenXRAPI::register_extension_wrapper(memnew(OpenXRHuaweiControllerExtension));
@@ -166,6 +169,7 @@ void initialize_openxr_module(ModuleInitializationLevel p_level) {
 		GDREGISTER_CLASS(OpenXRIPBinding);
 		GDREGISTER_CLASS(OpenXRInteractionProfile);
 
+		GDREGISTER_CLASS(OpenXRCompositionLayer);
 		GDREGISTER_CLASS(OpenXRHand);
 
 		XRServer *xr_server = XRServer::get_singleton();
