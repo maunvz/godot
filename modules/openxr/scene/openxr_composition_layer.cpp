@@ -60,11 +60,12 @@ OpenXRCompositionLayer::~OpenXRCompositionLayer() {
 void OpenXRCompositionLayer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_composition_layer_type", "composition_layer_type"), &OpenXRCompositionLayer::set_composition_layer_type);
 	ClassDB::bind_method(D_METHOD("get_composition_layer_type"), &OpenXRCompositionLayer::get_composition_layer_type);
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "composition_layer_type", PROPERTY_HINT_ENUM, "Equirect"), "set_composition_layer_type", "get_composition_layer_type");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "composition_layer_type", PROPERTY_HINT_ENUM, "Equirect,Quad"), "set_composition_layer_type", "get_composition_layer_type");
 
 	ClassDB::bind_method(D_METHOD("is_supported"), &OpenXRCompositionLayer::is_supported);
 
 	BIND_ENUM_CONSTANT(COMPOSITION_LAYER_EQUIRECT2);
+	BIND_ENUM_CONSTANT(COMPOSITION_LAYER_QUAD);
 	BIND_ENUM_CONSTANT(COMPOSITION_LAYER_MAX);
 }
 
@@ -74,6 +75,9 @@ void OpenXRCompositionLayer::set_composition_layer_type(const CompositionLayerTy
 	switch (composition_layer_type) {
 		case COMPOSITION_LAYER_EQUIRECT2: {
 			openxr_layer_provider->setup_for_type(XR_TYPE_COMPOSITION_LAYER_EQUIRECT2_KHR);
+		} break;
+		case COMPOSITION_LAYER_QUAD: {
+			openxr_layer_provider->setup_for_type(XR_TYPE_COMPOSITION_LAYER_QUAD);
 		} break;
 		default: {
 			// this will clear it and make it inactive.

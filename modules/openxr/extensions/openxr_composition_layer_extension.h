@@ -76,6 +76,7 @@ private:
 	union {
 		XrCompositionLayerBaseHeader composition_layer;
 		XrCompositionLayerEquirect2KHR equirect_layer;
+		XrCompositionLayerQuad quad_layer;
 	};
 	int sort_order = 1;
 

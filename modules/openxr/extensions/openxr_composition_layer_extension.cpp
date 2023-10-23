@@ -88,6 +88,9 @@ bool ViewportCompositionLayerProvider::is_supported() {
 		case XR_TYPE_COMPOSITION_LAYER_EQUIRECT2_KHR: {
 			return composition_layer_extension->is_available(OpenXRCompositionLayerExtension::COMPOSITION_LAYER_EQUIRECT_EXT);
 		} break;
+		case XR_TYPE_COMPOSITION_LAYER_QUAD: {
+			return true;
+		} break;
 		default: {
 			return false;
 		} break;
@@ -116,6 +119,22 @@ void ViewportCompositionLayerProvider::setup_for_type(XrStructureType p_type) {
 			equirect_layer.centralHorizontalAngle = 90.0 * Math_PI / 180.0;
 			equirect_layer.upperVerticalAngle = 25.0 * Math_PI / 180.0;
 			equirect_layer.lowerVerticalAngle = 25.0 * Math_PI / 180.0;
+		} break;
+		case XR_TYPE_COMPOSITION_LAYER_QUAD: {
+			memset(&quad_layer, 0, sizeof(XrCompositionLayerQuad));
+			quad_layer.type = XR_TYPE_COMPOSITION_LAYER_QUAD;
+			quad_layer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT | XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
+			quad_layer.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
+
+			quad_layer.pose.orientation.x = 0.0;
+			quad_layer.pose.orientation.y = 0.0;
+			quad_layer.pose.orientation.z = 0.0;
+			quad_layer.pose.orientation.w = 1.0;
+			quad_layer.pose.position.x = 0.0;
+			quad_layer.pose.position.y = 1.5;
+			quad_layer.pose.position.z = -2.0;
+			quad_layer.size.width = 2.0;
+			quad_layer.size.height = 2.0;
 		} break;
 		default: {
 			memset(&composition_layer, 0, sizeof(XrCompositionLayerBaseHeader));
@@ -155,6 +174,19 @@ OpenXRCompositionLayerProvider::OrderedCompositionLayer ViewportCompositionLayer
 			equirect_layer.subImage.imageRect.extent.height = height;
 
 			equirect_layer.space = openxr_api->get_play_space();
+
+			return { &composition_layer, sort_order };
+		} break;
+		case XR_TYPE_COMPOSITION_LAYER_QUAD: {
+			// Setup additional info for swapchain
+			quad_layer.subImage.swapchain = swapchain_info.swapchain;
+			quad_layer.subImage.imageArrayIndex = swapchain_info.image_index;
+			quad_layer.subImage.imageRect.offset.x = 0;
+			quad_layer.subImage.imageRect.offset.y = 0;
+			quad_layer.subImage.imageRect.extent.width = width;
+			quad_layer.subImage.imageRect.extent.height = height;
+
+			quad_layer.space = openxr_api->get_play_space();
 
 			return { &composition_layer, sort_order };
 		} break;

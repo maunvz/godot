@@ -42,6 +42,7 @@ class OpenXRCompositionLayer : public SubViewport {
 public:
 	enum CompositionLayerTypes {
 		COMPOSITION_LAYER_EQUIRECT2,
+		COMPOSITION_LAYER_QUAD,
 		COMPOSITION_LAYER_MAX
 	};
 
