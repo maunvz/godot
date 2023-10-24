@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  openxr_composition_layer_extension.h                                  */
+/*  openxr_android_surface_swapchain_extension.h                          */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,77 +28,52 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_COMPOSITION_LAYER_EXTENSION_H
-#define OPENXR_COMPOSITION_LAYER_EXTENSION_H
+#ifndef OPENXR_ANDROID_SURFACE_SWAPCHAIN_EXTENSION_H
+#define OPENXR_ANDROID_SURFACE_SWAPCHAIN_EXTENSION_H
 
-#include "openxr_composition_layer_provider.h"
+#include "../util.h"
+#include "../openxr_platform_inc.h"
 #include "openxr_extension_wrapper.h"
-
-#ifdef ANDROID_ENABLED
-#include "openxr_android_surface_swapchain_extension.h"
-#endif
 
 #include "../openxr_api.h"
 
-// This extension provides access to composition layers for displaying 2D content through the XR compositor.
+#include <jni.h>
 
-// OpenXRCompositionLayerExtension enables the extensions related to this functionality
-class OpenXRCompositionLayerExtension : public OpenXRExtensionWrapper {
+class OpenXRAndroidSurfaceSwapchainExtension : public OpenXRExtensionWrapper {
 public:
-	enum CompositionLayerExtensions {
-		COMPOSITION_LAYER_EQUIRECT_EXT,
-		COMPOSITION_LAYER_IMAGE_LAYOUT_EXT,
-		COMPOSITION_LAYER_EXT_MAX
-	};
+	static OpenXRAndroidSurfaceSwapchainExtension *get_singleton();
 
-	static OpenXRCompositionLayerExtension *get_singleton();
-
-	OpenXRCompositionLayerExtension();
-	virtual ~OpenXRCompositionLayerExtension() override;
+	OpenXRAndroidSurfaceSwapchainExtension();
 
 	virtual HashMap<String, bool *> get_requested_extensions() override;
-	bool is_available(CompositionLayerExtensions p_which);
+	virtual void on_instance_created(const XrInstance p_instance) override;
+
+	virtual ~OpenXRAndroidSurfaceSwapchainExtension() override;
+
+	// r_swapchain_graphics_data is the jobject representing a Surface
+	bool create_android_surface_swapchain(
+			XrSwapchainUsageFlags p_usage_flags,
+			uint32_t p_width,
+			uint32_t p_height,
+			XrSwapchain &r_swapchain,
+			void **r_swapchain_graphics_data);
+
+	void free_swapchain(OpenXRAPI::OpenXRSwapChainInfo &p_swapchain);
 
 private:
-	static OpenXRCompositionLayerExtension *singleton;
+	static OpenXRAndroidSurfaceSwapchainExtension *singleton;
 
-	bool available[COMPOSITION_LAYER_EXT_MAX] = { false };
-};
-
-class ViewportCompositionLayerProvider : public OpenXRCompositionLayerProvider {
-public:
-	ViewportCompositionLayerProvider();
-	virtual ~ViewportCompositionLayerProvider() override;
-
-	bool is_supported();
-	void setup_for_type(XrStructureType p_type);
-	virtual OrderedCompositionLayer get_composition_layer() override;
-	bool update_swapchain(uint32_t p_width, uint32_t p_height, bool p_android);
-	void set_transform(const Transform3D& p_transform_3d);
-	void set_size_2d_meters(float p_width_m, float p_height_m);
-	void free_swapchain();
-	RID get_image();
-	int get_android_surface_handle();
-
-private:
-	union {
-		XrCompositionLayerBaseHeader composition_layer;
-		XrCompositionLayerEquirect2KHR equirect_layer;
-		XrCompositionLayerQuad quad_layer;
-	};
-	int sort_order = 1;
-  XrCompositionLayerImageLayoutFB composition_layout_ext = {};
+	bool android_surface_swapchain_extension_available = false;
+	bool android_surface_swapchain_create_extension_available = false;
 
 	OpenXRAPI *openxr_api = nullptr;
-	OpenXRCompositionLayerExtension *composition_layer_extension = nullptr;
 
-#ifdef ANDROID_ENABLED
-	OpenXRAndroidSurfaceSwapchainExtension *android_surface_swapchain_extension = nullptr;
-#endif
-
-	uint32_t width = 0;
-	uint32_t height = 0;
-	OpenXRAPI::OpenXRSwapChainInfo swapchain_info;
+	EXT_PROTO_XRRESULT_FUNC1(xrDestroySwapchain, (XrSwapchain), swapchain)
+	EXT_PROTO_XRRESULT_FUNC4(xrCreateSwapchainAndroidSurfaceKHR,
+			(XrSession), session,
+			(const XrSwapchainCreateInfo *), info,
+			(XrSwapchain *), swapchain,
+			(jobject*), surface)
 };
 
-#endif // OPENXR_COMPOSITION_LAYER_EXTENSION_H
+#endif // OPENXR_ANDROID_SURFACE_SWAPCHAIN_EXTENSION_H

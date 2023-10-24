@@ -38,6 +38,7 @@
 #include "openxr_interface.h"
 
 
+#include "scene/android_surface_layer.h"
 #include "scene/openxr_composition_layer.h"
 #include "scene/openxr_hand.h"
 
@@ -64,6 +65,7 @@
 
 #ifdef ANDROID_ENABLED
 #include "extensions/platform/openxr_android_extension.h"
+#include "extensions/openxr_android_surface_swapchain_extension.h"
 #endif
 
 #include "core/config/project_settings.h"
@@ -106,6 +108,7 @@ void initialize_openxr_module(ModuleInitializationLevel p_level) {
 			// Some of these wrappers will add functionality to our editor.
 #ifdef ANDROID_ENABLED
 			OpenXRAPI::register_extension_wrapper(memnew(OpenXRAndroidExtension));
+			OpenXRAPI::register_extension_wrapper(memnew(OpenXRAndroidSurfaceSwapchainExtension));
 #endif
 
 			// register our other extensions
@@ -169,6 +172,7 @@ void initialize_openxr_module(ModuleInitializationLevel p_level) {
 		GDREGISTER_CLASS(OpenXRIPBinding);
 		GDREGISTER_CLASS(OpenXRInteractionProfile);
 
+		GDREGISTER_CLASS(AndroidSurfaceLayer);
 		GDREGISTER_CLASS(OpenXRCompositionLayer);
 		GDREGISTER_CLASS(OpenXRHand);
 

@@ -106,7 +106,7 @@ void OpenXRCompositionLayer::_notification(int p_what) {
 			if (openxr_layer_provider->is_supported()) {
 				// Update our XR swapchain
 				Size2i vp_size = get_size();
-				openxr_layer_provider->update_swapchain(vp_size.width, vp_size.height);
+				openxr_layer_provider->update_swapchain(vp_size.width, vp_size.height, false);
 
 				// Render to our XR swapchain image
 				RID vp = get_viewport_rid();

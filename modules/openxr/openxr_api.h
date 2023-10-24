@@ -64,6 +64,7 @@ public:
 		uint32_t image_index = 0;
 		bool image_acquired = false;
 		bool skip_acquire_swapchain = false;
+		bool android_surface_swapchain = false;
 	};
 
 private:

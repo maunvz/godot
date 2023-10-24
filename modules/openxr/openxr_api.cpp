@@ -1777,6 +1777,11 @@ void OpenXRAPI::free_swapchain(OpenXRSwapChainInfo &p_swapchain) {
 bool OpenXRAPI::acquire_image(OpenXRSwapChainInfo &p_swapchain) {
 	ERR_FAIL_COND_V(p_swapchain.image_acquired, true); // This was not released when it should be, error out and reuse...
 
+	if (p_swapchain.android_surface_swapchain) {
+		// Nothing to do here, Android handles it
+		return true;
+	}
+
 	XrResult result;
 
 	if (!p_swapchain.skip_acquire_swapchain) {
@@ -1832,6 +1837,12 @@ bool OpenXRAPI::acquire_image(OpenXRSwapChainInfo &p_swapchain) {
 RID OpenXRAPI::get_image(OpenXRSwapChainInfo &p_swapchain) {
 	if (p_swapchain.image_acquired) {
 		return graphics_extension->get_texture(p_swapchain.swapchain_graphics_data, p_swapchain.image_index);
+	} else if (p_swapchain.android_surface_swapchain) {
+#ifdef ANDROID_ENABLED
+		return RID(); // TODO: Reach out to OpenXRAndroidSurfaceSwapchainExtension
+#else
+		return RID();
+#endif
 	} else {
 		return RID();
 	}
