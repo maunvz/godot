@@ -65,7 +65,7 @@
 
 #ifdef ANDROID_ENABLED
 #include "extensions/platform/openxr_android_extension.h"
-#include "extensions/openxr_android_surface_swapchain_extension.h"
+#include "extensions/platform/openxr_android_surface_swapchain_extension.h"
 #endif
 
 #include "core/config/project_settings.h"

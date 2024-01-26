@@ -10,6 +10,8 @@ env_openxr.add_source_files(module_obj, "*.cpp")
 # These are platform dependent
 if env["platform"] == "android":
     env_openxr.add_source_files(module_obj, "platform/openxr_android_extension.cpp")
+    env_openxr.add_source_files(module_obj, "platform/openxr_android_surface_swapchain_extension.cpp")
+
 if env["vulkan"]:
     env_openxr.add_source_files(module_obj, "platform/openxr_vulkan_extension.cpp")
 if env["opengl3"] and env["platform"] != "macos":
