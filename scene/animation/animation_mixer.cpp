@@ -681,6 +681,7 @@ bool AnimationMixer::_update_caches() {
 				Node *child = parent->get_node_and_resource(path, resource, leftover_path);
 				if (!child) {
 					if (check_path) {
+						// AnimationMixer: 'Humanoid', couldn't resolve track:  'Skeleton3D:J_Bip_L_Foot'. This warning can be disabled in Project Settings. (User)
 						WARN_PRINT_ED(mixer_name + ": '" + String(E) + "', couldn't resolve track:  '" + String(path) + "'. This warning can be disabled in Project Settings.");
 					}
 					continue;
