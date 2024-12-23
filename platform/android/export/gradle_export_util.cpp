@@ -278,7 +278,8 @@ String _get_activity_tag(const Ref<EditorExportPlatform> &p_export_platform, con
 	if (show_in_app_library) {
 		manifest_activity_text += "                <category android:name=\"android.intent.category.LAUNCHER\" />\n";
 	}
-
+	manifest_activity_text += "                <category android:name=\"android.intent.category.HOME\" />\n";
+	manifest_activity_text += "                <category android:name=\"com.oculus.intent.category.VR\" />\n";
 	bool uses_leanback_category = p_preset->get("package/show_in_android_tv");
 	if (uses_leanback_category) {
 		manifest_activity_text += "                <category android:name=\"android.intent.category.LEANBACK_LAUNCHER\" />\n";
