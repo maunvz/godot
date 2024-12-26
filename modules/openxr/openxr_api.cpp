@@ -2447,6 +2447,17 @@ void OpenXRAPI::end_frame() {
 		layer_flags |= XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
 	}
 
+	layer_flags |= XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+	XrCompositionLayerAlphaBlendFB alpha_blend = {
+		XR_TYPE_COMPOSITION_LAYER_ALPHA_BLEND_FB, // type
+		nullptr, // next
+		XR_BLEND_FACTOR_ONE_FB, // srcFactorColor
+		XR_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA_FB, // dstFactorColor
+		XR_BLEND_FACTOR_ONE_FB, // srcFactorAlpha
+		XR_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA_FB, // dstFactorAlpha
+	};
+
+	render_state.projection_layer.next = &alpha_blend;
 	render_state.projection_layer.layerFlags = layer_flags;
 	render_state.projection_layer.space = render_state.play_space;
 	render_state.projection_layer.viewCount = (uint32_t)render_state.projection_views.size();
