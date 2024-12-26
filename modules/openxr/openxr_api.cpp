@@ -2496,9 +2496,19 @@ void OpenXRAPI::end_frame() {
 		layer_flags |= XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
 	}
 
+	layer_flags |= XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+	XrCompositionLayerAlphaBlendFB alpha_blend = {
+		XR_TYPE_COMPOSITION_LAYER_ALPHA_BLEND_FB, // type
+		nullptr, // next
+		XR_BLEND_FACTOR_ONE_FB, // srcFactorColor
+		XR_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA_FB, // dstFactorColor
+		XR_BLEND_FACTOR_ONE_FB, // srcFactorAlpha
+		XR_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA_FB, // dstFactorAlpha
+	};
+
 	XrCompositionLayerProjection projection_layer = {
 		XR_TYPE_COMPOSITION_LAYER_PROJECTION, // type
-		nullptr, // next
+		&alpha_blend, // next
 		layer_flags, // layerFlags
 		render_state.play_space, // space
 		render_state.view_count, // viewCount
