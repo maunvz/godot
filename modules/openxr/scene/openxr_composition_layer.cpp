@@ -67,7 +67,7 @@ OpenXRCompositionLayer::OpenXRCompositionLayer(XrCompositionLayerBaseHeader *p_c
 	}
 
 	set_process_internal(true);
-	set_notify_local_transform(true);
+	set_notify_transform(true);
 
 	if (Engine::get_singleton()->is_editor_hint()) {
 		// In the editor, create the fallback right away.
@@ -123,11 +123,12 @@ void OpenXRCompositionLayer::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "enable_hole_punch", PROPERTY_HINT_NONE, ""), "set_enable_hole_punch", "get_enable_hole_punch");
 }
 
+/* True if we need to render the content to an in-game mesh, or use holepunch. */
 bool OpenXRCompositionLayer::_should_use_fallback_node() {
 	if (Engine::get_singleton()->is_editor_hint()) {
 		return true;
 	} else if (openxr_session_running) {
-		return enable_hole_punch || (!is_natively_supported() && !use_android_surface);
+		return enable_hole_punch || !is_natively_supported();
 	}
 	return false;
 }
@@ -175,7 +176,7 @@ void OpenXRCompositionLayer::_clear_composition_layer_provider() {
 
 void OpenXRCompositionLayer::_on_openxr_session_begun() {
 	openxr_session_running = true;
-	if (is_natively_supported() && is_visible() && is_inside_tree()) {
+	if (is_natively_supported() && is_visible_in_tree() && is_inside_tree()) {
 		_setup_composition_layer_provider();
 	}
 	if (!fallback && _should_use_fallback_node()) {
@@ -196,12 +197,13 @@ void OpenXRCompositionLayer::update_fallback_mesh() {
 }
 
 XrPosef OpenXRCompositionLayer::get_openxr_pose() {
-	Transform3D reference_frame = XRServer::get_singleton()->get_reference_frame();
-	Transform3D transform = reference_frame.inverse() * get_transform();
-	Quaternion quat(transform.basis.orthonormalized());
+	auto transform = get_global_transform();
+	auto rot = transform.get_basis().get_rotation_quaternion().normalized();
+	auto pos = transform.get_origin();
+
 	return {
-		{ (float)quat.x, (float)quat.y, (float)quat.z, (float)quat.w },
-		{ (float)transform.origin.x, (float)transform.origin.y, (float)transform.origin.z }
+		{ rot.x, rot.y, rot.z, rot.w },
+		{ pos.x, pos.y, pos.z }
 	};
 }
 
@@ -239,7 +241,9 @@ void OpenXRCompositionLayer::set_layer_viewport(SubViewport *p_viewport) {
 
 	if (fallback) {
 		_reset_fallback_material();
-	} else if (openxr_session_running && is_visible() && is_inside_tree()) {
+	}
+
+	if (openxr_session_running && is_visible_in_tree() && is_inside_tree() && is_natively_supported()) {
 		if (layer_viewport) {
 			openxr_layer_provider->set_viewport(layer_viewport->get_viewport_rid(), layer_viewport->get_size());
 		} else {
@@ -401,8 +405,8 @@ void OpenXRCompositionLayer::_notification(int p_what) {
 			}
 		} break;
 		case NOTIFICATION_VISIBILITY_CHANGED: {
-			if (is_natively_supported() && openxr_session_running && is_inside_tree()) {
-				if (is_visible()) {
+			if (openxr_session_running && is_inside_tree()) {
+				if (is_visible_in_tree()) {
 					_setup_composition_layer_provider();
 				} else {
 					_clear_composition_layer_provider();
@@ -415,9 +419,9 @@ void OpenXRCompositionLayer::_notification(int p_what) {
 		} break;
 		case NOTIFICATION_ENTER_TREE: {
 			if (layer_viewport && is_viewport_in_use(layer_viewport)) {
-				_clear_composition_layer_provider();
-			} else if (openxr_session_running && is_visible()) {
-				_setup_composition_layer_provider();
+				_clear_composition_layer_provider(); // Delete ourselves if this viewport is already in use
+			} else if (openxr_session_running && is_visible_in_tree()) {
+				_setup_composition_layer_provider(); // Actual normal setup
 			}
 		} break;
 		case NOTIFICATION_EXIT_TREE: {
@@ -477,13 +481,6 @@ void OpenXRCompositionLayer::_validate_property(PropertyInfo &p_property) const 
 
 PackedStringArray OpenXRCompositionLayer::get_configuration_warnings() const {
 	PackedStringArray warnings = Node3D::get_configuration_warnings();
-
-	if (is_visible() && is_inside_tree()) {
-		XROrigin3D *origin = Object::cast_to<XROrigin3D>(get_parent());
-		if (origin == nullptr) {
-			warnings.push_back(RTR("OpenXR composition layers must have an XROrigin3D node as their parent."));
-		}
-	}
 
 	if (!get_transform().basis.is_orthonormal()) {
 		warnings.push_back(RTR("OpenXR composition layers must have orthonormalized transforms (ie. no scale or shearing)."));
