@@ -58,7 +58,7 @@ Ref<Mesh> OpenXRCompositionLayerQuad::_create_fallback_mesh() {
 
 void OpenXRCompositionLayerQuad::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_LOCAL_TRANSFORM_CHANGED: {
+		case NOTIFICATION_TRANSFORM_CHANGED: {
 			update_transform();
 		} break;
 	}
