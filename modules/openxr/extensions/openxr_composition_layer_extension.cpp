@@ -226,7 +226,7 @@ void OpenXRViewportCompositionLayerProvider::set_viewport(RID p_viewport, Size2i
 
 void OpenXRViewportCompositionLayerProvider::set_use_android_surface(bool p_use_android_surface, Size2i p_size) {
 #ifdef ANDROID_ENABLED
-	if (p_use_android_surface == use_android_surface) {
+	if (p_use_android_surface == use_android_surface && p_size == swapchain_size) {
 		return;
 	}
 
@@ -241,6 +241,10 @@ void OpenXRViewportCompositionLayerProvider::set_use_android_surface(bool p_use_
 			set_viewport(RID(), Size2i());
 		}
 
+		if (swapchain_size != p_size) {
+			// Free now so we can reallocate on next get()
+			free_swapchain();
+		}
 		swapchain_size = p_size;
 	} else {
 		free_swapchain();
@@ -306,9 +310,6 @@ void OpenXRViewportCompositionLayerProvider::set_extension_property_values(const
 void OpenXRViewportCompositionLayerProvider::on_pre_render() {
 #ifdef ANDROID_ENABLED
 	if (use_android_surface) {
-		if (android_surface.surface.is_null()) {
-			create_android_surface();
-		}
 		return;
 	}
 #endif

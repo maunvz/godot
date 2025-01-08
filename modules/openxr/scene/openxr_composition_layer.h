@@ -56,6 +56,7 @@ class OpenXRCompositionLayer : public Node3D {
 	MeshInstance3D *fallback = nullptr;
 	bool should_update_fallback_mesh = false;
 	bool openxr_session_running = false;
+	bool registered = false;
 
 	Dictionary extension_property_values;
 
