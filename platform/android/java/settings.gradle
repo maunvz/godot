@@ -8,6 +8,8 @@ pluginManagement {
         id 'com.android.asset-pack' version versions.androidGradlePlugin
         id 'org.jetbrains.kotlin.android' version versions.kotlinVersion
         id 'io.github.gradle-nexus.publish-plugin' version versions.nexusPublishVersion
+        id 'com.android.application' version '8.7.3'
+        id 'org.jetbrains.kotlin.android' version '1.9.20'
     }
     repositories {
         google()
@@ -27,3 +29,4 @@ include ':editor'
 
 include ':assetPacks:installTime'
 project(':assetPacks:installTime').projectDir = file("app/assetPacks/installTime")
+include ':swm'
