@@ -125,7 +125,7 @@ void OpenXRCompositionLayer::_bind_methods() {
 
 /* True if we need to render the content to an in-game mesh, or use holepunch. */
 bool OpenXRCompositionLayer::_should_use_fallback_node() {
-	if (Engine::get_singleton()->is_editor_hint()) {
+	if (Engine::get_singleton()->is_editor_hint() || openxr_api == nullptr) {
 		return true;
 	} else if (openxr_session_running) {
 		return enable_hole_punch || !is_natively_supported();
@@ -340,7 +340,7 @@ bool OpenXRCompositionLayer::get_alpha_blend() const {
 }
 
 bool OpenXRCompositionLayer::is_natively_supported() const {
-	if (composition_layer_extension) {
+	if (composition_layer_extension && openxr_api) {
 		return composition_layer_extension->is_available(openxr_layer_provider->get_openxr_type());
 	}
 	return false;
