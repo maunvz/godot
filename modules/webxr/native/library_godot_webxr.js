@@ -52,6 +52,12 @@ const GodotWebXR = {
 		requestAnimationFrame: (callback) => {
 			if (GodotWebXR.session && GodotWebXR.space) {
 				const onFrame = function (time, frame) {
+					// Pick up input sources we weren't told about: a browser may
+					// announce a session's first ones before we listen for
+					// 'inputsourceschange'. Known ones return straight away.
+					for (const input_source of GodotWebXR.session.inputSources) {
+						GodotWebXR.addInputSource(input_source);
+					}
 					GodotWebXR.frame = frame;
 					GodotWebXR.pose = frame.getViewerPose(GodotWebXR.space);
 					callback(time);
@@ -359,6 +365,10 @@ const GodotWebXR = {
 		},
 
 		addInputSource: (input_source) => {
+			// Already known (seen in a frame's input sources, then announced, or the other way round).
+			if (input_source.name !== undefined && GodotWebXR.input_sources[input_source.name] === input_source) {
+				return input_source.name;
+			}
 			let name = -1;
 			if (input_source.targetRayMode === 'tracked-pointer' && input_source.handedness === 'left') {
 				name = 0;
