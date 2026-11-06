@@ -271,6 +271,10 @@ private:
 	static int root_layout_direction;
 
 protected:
+#ifndef XR_DISABLED
+	virtual void _xr_size_released() override { _update_viewport_size(); }
+#endif // XR_DISABLED
+
 	virtual void _popup_base(const Rect2i &p_screen_rect = Rect2i());
 	virtual void _pre_popup(const Size2i &p_size) {} // Called after "about_to_popup", but before window is shown.
 	virtual Rect2i _popup_adjust_rect() const { return Rect2i(); }

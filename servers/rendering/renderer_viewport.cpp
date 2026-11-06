@@ -1040,7 +1040,12 @@ void RendererViewport::viewport_set_use_xr(RID p_viewport, bool p_use_xr) {
 	// Re-configure the 3D render buffers when disabling XR. They'll get
 	// re-configured when enabling XR in draw_viewports().
 	if (!p_use_xr) {
+		// Stop rendering into the XR interface's textures, and give the render
+		// target back a single view: setting view_count alone left it with the
+		// XR view count, so nothing was drawn to the screen after leaving XR.
+		RSG::texture_storage->render_target_set_override(viewport->render_target, RID(), RID(), RID(), RID());
 		viewport->view_count = 1;
+		RSG::texture_storage->render_target_set_size(viewport->render_target, viewport->size.x, viewport->size.y, 1);
 		_configure_3d_render_buffers(viewport);
 	}
 }

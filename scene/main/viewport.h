@@ -521,6 +521,8 @@ private:
 protected:
 	bool _set_size(const Size2i &p_size, const int p_view_count, const Size2 &p_size_2d_override, bool p_allocated);
 	void _check_xr_size();
+	// Called when `use_xr` is turned off, so whatever sizes this viewport can apply its own size again.
+	virtual void _xr_size_released() {}
 
 	Size2i _get_size() const;
 	Size2 _get_size_2d_override() const;
