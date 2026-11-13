@@ -178,7 +178,7 @@ public class GodotInputHandler implements InputManager.InputDeviceListener, Sens
 	 */
 	void performHapticFeedback() {
 		GodotRenderView view = godot.getRenderView();
-		if (view != null) {
+		if (view != null && view.getView() != null) { // offscreen render views have no View
 			view.getView().performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
 		}
 	}

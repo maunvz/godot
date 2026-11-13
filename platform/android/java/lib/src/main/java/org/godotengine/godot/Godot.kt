@@ -61,6 +61,7 @@ import org.godotengine.godot.io.StorageScope
 import org.godotengine.godot.io.directory.DirectoryAccessHandler
 import org.godotengine.godot.io.file.FileAccessHandler
 import org.godotengine.godot.nativeapi.GodotNativeBridge
+import org.godotengine.godot.offscreen.GodotOffscreenRenderView
 import org.godotengine.godot.plugin.AndroidRuntimePlugin
 import org.godotengine.godot.plugin.GodotPlugin
 import org.godotengine.godot.plugin.GodotPluginRegistry
@@ -209,6 +210,11 @@ class Godot private constructor(val context: Context) {
 	private val useImmersive = AtomicBoolean(false)
 	private val isEdgeToEdge = AtomicBoolean(false)
 	private var useDebugOpengl = false
+	// Offscreen mode (--offscreen): no View/window; see GodotOffscreenRenderView.
+	private var useOffscreen = false
+	private var offscreenWidth = 0
+	private var offscreenHeight = 0
+	private var offscreenFps = 0
 	internal var darkMode = false
 	private var backgroundColor: Int = Color.BLACK
 	private var orientation = Configuration.ORIENTATION_UNDEFINED
@@ -218,6 +224,13 @@ class Godot private constructor(val context: Context) {
 
 	internal var containerLayout: FrameLayout? = null
 	var renderView: GodotRenderView? = null
+
+	/**
+	 * The offscreen render view when running with `--offscreen`, for hosts (e.g. a Service)
+	 * to resize it or attach an output [android.view.Surface]; null otherwise.
+	 */
+	val offscreenRenderView: GodotOffscreenRenderView?
+		get() = renderView as? GodotOffscreenRenderView
 
 	/**
 	 * Returns true if the native engine has been initialized through [initEngine], false otherwise.
@@ -287,6 +300,16 @@ class Godot private constructor(val context: Context) {
 					xrMode = XRMode.OPENXR
 				} else if (commandLine[i] == "--debug_opengl") {
 					useDebugOpengl = true
+				} else if (commandLine[i] == "--offscreen") {
+					useOffscreen = true
+				} else if (hasExtra && commandLine[i] == "--offscreen-size") {
+					val size = commandLine[i + 1].split("x")
+					offscreenWidth = size.getOrNull(0)?.toIntOrNull() ?: 0
+					offscreenHeight = size.getOrNull(1)?.toIntOrNull() ?: 0
+					i++
+				} else if (hasExtra && commandLine[i] == "--offscreen-fps") {
+					offscreenFps = commandLine[i + 1].toIntOrNull() ?: 0
+					i++
 				} else if (commandLine[i] == "--edge_to_edge") {
 					isEdgeToEdge.set(true)
 				} else if (commandLine[i] == "--fullscreen") {
@@ -512,6 +535,29 @@ class Godot private constructor(val context: Context) {
 	}
 
 	/**
+	 * `--offscreen`: Godot renders from its own thread into a pbuffer (or an attached output
+	 * Surface) with no View, so there is no IME edit text, no input view and no keyboard-inset
+	 * tracking. The (empty) container layout is still returned for API compatibility.
+	 */
+	private fun initOffscreenRenderView() {
+		if (getNativeRenderer() != "opengl3") {
+			throw IllegalStateException("--offscreen requires the OpenGL (Compatibility) renderer, not '${getNativeRenderer()}'")
+		}
+		if (xrMode == XRMode.OPENXR) {
+			Log.w(TAG, "--offscreen ignores OpenXR mode; pass --xr-mode off to keep the engine from starting OpenXR")
+		}
+		val view = GodotOffscreenRenderView(godotInputHandler, offscreenWidth, offscreenHeight, offscreenFps)
+		renderView = view
+		view.startRenderer()
+		view.queueOnRenderThread {
+			for (plugin in pluginRegistry.allPlugins) {
+				plugin.onRegisterPluginWithGodotNative()
+			}
+		}
+		Log.i(TAG, "Offscreen render view started")
+	}
+
+	/**
 	 * Used to complete initialization of the view used by the engine for rendering.
 	 *
 	 * This must be preceded by [initEngine] to properly initialize the engine.
@@ -542,6 +588,12 @@ class Godot private constructor(val context: Context) {
 
 			containerLayout = providedContainerLayout
 			containerLayout?.removeAllViews()
+
+			if (useOffscreen) {
+				initOffscreenRenderView()
+				renderViewInitialized = true
+				return containerLayout
+			}
 			val layoutParams = containerLayout?.layoutParams ?: ViewGroup.LayoutParams(
 					ViewGroup.LayoutParams.MATCH_PARENT,
 					ViewGroup.LayoutParams.MATCH_PARENT
